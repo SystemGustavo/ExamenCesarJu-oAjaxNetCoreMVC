@@ -1,0 +1,133 @@
+﻿@model ProductoVM
+<div>
+    <form id="createProductForm">
+        @* <div asp-validation-summary="ModelOnly" class="text-danger"></div> *@
+        <input type="hidden" name="ProductoID" value="@Model.Producto.ProductoID"></input>
+        <div class="form-group">
+            <label for="Descripcion">Descripcion:</label>
+            <input type="text" id="Descripcion" name="Descripcion" value="@Model.Producto.Descripcion" class="form-control" />
+           @*  <span asp-validation-for="Producto.Descripcion" class="text-danger"></span> *@
+        </div>
+        <div class="form-group">
+            <label for="PrecioVenta">Precio de Venta:</label>
+            <input type="text" id="PrecioVenta" name="PrecioVenta" value="@Model.Producto.PrecioVenta" class="form-control" />
+           @*  <span asp-validation-for="Producto.PrecioVenta" class="text-danger"></span> *@
+        </div>
+        <div class="form-group">
+            <label for="StockMinimo">Stock Minimo:</label>
+            <input type="text" id="StockMinimo" name="StockMinimo" value="@Model.Producto.StockMinimo" class="form-control" />
+            @* <span asp-validation-for="Producto.StockMinimo" class="text-danger"></span> *@
+        </div>
+        <div class="form-group">
+            <label for="StockActual">Stock Actual:</label>
+            <input type="text" id="StockActual" name="StockActual" value="@Model.Producto.StockActual" class="form-control" />
+            @* <span asp-validation-for="Producto.StockActual" class="text-danger"></span> *@
+        </div>
+        <div class="form-group">
+            <label for="FechaDeVenta">Fecha de Venta</label>
+            <input type="date" id="FechaDeVenta" name="FechaDeVenta" value="@Model.Producto.FechaDeVenta.ToString("yyyy-MM-dd")" class="form-control" />
+           @*  <span asp-validation-for="Producto.FechaDeVenta" class="text-danger"></span> *@
+        </div>
+        <div class="form-group">
+            <label for="Categoria">Categoria:</label>
+            <select asp-for="Producto.Categoria.CategoriaID" name="CategoriaID" asp-items="@Model.Categoria" class="form-select">
+                <option>Seleccione una Categoria</option>
+            </select>
+           @*  <span asp-validation-for="Categoria" class="text-danger"></span> *@
+        </div>
+        <div class="form-group">
+            <button type="button" id="submitProductButton" class="btn btn-success" data-bs-toggle="modal">Guardar</button>
+            <button type="button" id="CancelarButton" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // $('#Descripcion').val('');
+        // $('#PrecioVenta').val('');
+        // $('#StockMinimo').val('');
+        // $('#StockActual').val('');
+        // $('#PrecioVenta').val('');
+        // $('#FechaDeVenta').val('');
+        // $('#createProductForm').validate({
+        //     rules: {
+        //         Descripcion: {
+        //             required: true
+        //         },
+        //         PrecioVenta: {
+        //             required: true
+        //         },
+        //         StockMinimo: {
+        //             required: true
+        //         },
+        //         StockActual: {
+        //             required: true
+        //         },
+        //         FechaDeVenta: {
+        //             required: true
+        //         },
+        //     },
+        //     messages: {
+        //         Descripcion: {
+        //             required: "Por favor, ingrese la Descripcion."
+        //         },
+        //         PrecioVenta: {
+        //             required: "Por favor, ingrese el Precio de Venta."
+        //         },
+        //         StockMinimo: {
+        //             required: "Por favor, ingrese el Stock Minimo.",
+        //             digits: "Solo debe contener numeros"
+        //         },
+        //         StockActual: {
+        //             required: "Por favor, ingrese el Stock Actual.",
+        //             digits: "Solo debe contener numeros"
+        //         },
+        //         FechaDeVenta: {
+        //             required: "Por favor, ingrese la Fecha de Venta."
+        //         },
+        //     },
+        //     submitHandler: function (form) {
+        //         alert('Formulario enviado con éxito.');
+        //         // form.submit();
+        //     }
+        // });
+        //BuscarPorNombreyPrecio();
+        Guardar();
+        Cancelar();
+
+    });
+
+    function Guardar() {
+        $('#submitProductButton').on('click', function (event) {
+            var formData = $('#createProductForm').serialize(); // Serializa los datos del formulario
+            $.ajax({
+                type: "POST",
+                url: "/Productos/Guardar",
+                data: formData,
+                success: function (response) {
+                    alert(response.message);
+                    location.reload(); // Recargar la página para ver la lista actualizada
+                },
+                error: function () {
+                    alert('Hubo un error al crear el estudiante.');
+                }
+            });
+        });
+    }
+
+    function Cancelar(){
+        $('#CancelarButton').on('click', function (event) {
+            $('#Descripcion').val('');
+            $('#PrecioVenta').val('');
+            $('#StockMinimo').val('');
+            $('#StockActual').val('');
+            $('#PrecioVenta').val('');
+            $('#FechaDeVenta').val('');
+        });
+    }
+
+   
+</script>

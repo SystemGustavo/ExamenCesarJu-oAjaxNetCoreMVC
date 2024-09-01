@@ -1,0 +1,192 @@
+﻿<div class="container">
+    <div class="d-flex flex-row">
+        <div class="container-fluid">
+            <div class="d-flex col-12">
+                <div class="d-flex col-4">
+                    <button class="btn btn-success" id="createProductModal" data-bs-toggle="modal" data-bs-target="#ViewProductModal">Nuevo Producto</button>
+                </div>
+                <form id="BuscarForm">
+                    <div class="d-flex col-8">
+                        <input class="form-control" id="Nombre" type="search" name="Nombre" placeholder="Descripcion" aria-label="Nombre">
+                        <input class="form-control" id="Precio"  type="search" name="Precio" placeholder="Precio" aria-label="Precio">
+                        <button type="button" class="btn btn-info" id="BuscarProduct">Buscar</button>
+                        <button type="button" class="btn btn-danger" id="LimpiarProduct">Limpiar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-row">
+        <table class="table">
+            <thead class="table-dark">
+                <tr>
+                    <th>ProductID</th>
+                    <th>Descripcion</th>
+                    <th>Precio</th>
+                    <th>StockActual</th>
+                    <th>Categoria</th>
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="ViewProductModal" tabindex="-1" role="dialog" aria-labelledby="createProducto" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ProductLabel">Crear Producto</h5>
+            </div>
+            <div class="modal-body">
+                <!-- El contenido del modal se carga aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        CargarProductos();
+        BuscarPorNombreyPrecio();
+        LimpiarTextos();
+        ViewCrearModal();
+        ViewActualizarModal(productId);
+        EliminarProducto(productId);
+        
+    });
+
+    
+    function CargarProductos() {
+        $.ajax({
+            url: '/Productos/GetProductos',
+            method: 'GET',
+            success: function (response) {
+                var tableBody = $('table tbody');
+                tableBody.empty();
+                response.forEach(function (data) {
+                   var newRow = `
+                        <tr>
+                            <td>${data.productoID}</td>
+                            <td>${data.descripcion}</td>
+                            <td>${data.precioDeVenta}</td>
+                            <td>${data.stockActual}</td>
+                            <td>${data.categoria}</td>
+                                    <td><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ViewProductModal" onclick="ViewActualizarModal('${data.productoID}')">Actualizar</button>
+                                    <button class="btn btn-danger" onclick="EliminarProducto('${data.productoID}')">Eliminar</button></td>
+                        </tr>`;
+                   tableBody.append(newRow);
+                });
+
+            },
+            error: function () {
+                console.error('Error al obtener los datos:', error);
+            }
+        });
+    }
+
+    function ViewCrearModal() 
+    {
+        //click para el boton nuevo producto
+        // Cargar el contenido del modal
+        $('#createProductModal').click(function () {
+            $('#ProductLabel').html('Nuevo Producto');
+            var buttonValue = $(this).val();
+            $.ajax({
+                type: "GET",
+                url: "/Productos/ViewModalProductPartial",
+                data: { id: buttonValue },
+                success: function (response) {
+                    $('.modal-body').html(response);
+                    
+                },
+                error: function () {
+                    alert('Hubo un error al cargar el formulario.');
+                }
+            });
+        });
+    }
+
+    function ViewActualizarModal(productId) {
+        $('#ProductLabel').html('Actualizar Producto');
+        $.ajax({
+            type: "GET",
+            url: "/Productos/ViewModalProductPartial",
+            data: { id: productId }, // Enviar el ID como parte de los datos de la solicitud
+            success: function (response) {
+                $('.modal-body').html(response);
+
+            },
+            error: function () {
+                alert('Hubo un error al cargar el formulario.');
+            }
+        });
+    }
+
+    function EliminarProducto(productId) {
+        $.ajax({
+            type: "POST",
+            url: "/Productos/ViewEliminar",
+            data: { id: productId }, // Enviar el ID como parte de los datos de la solicitud
+            success: function (response) {
+                alert(response.message);
+                location.reload(); // Recargar la página para ver la lista actualizada
+            },
+            error: function () {
+                alert('Hubo un error al cargar el formulario.');
+            }
+        });
+    }
+
+    function BuscarPorNombreyPrecio()
+    {
+        $('#BuscarProduct').click(function () {
+            //console.log('aki llegue')
+            var nombre = $('#Nombre').val();
+            var precio = $('#Precio').val();
+
+            $.ajax({
+                type: "POST",
+                url: "/Productos/BuscarPorNombreyPrecio",
+                data: { Nombre: nombre, Precio: precio },
+                success: function (response) {
+                    var tableBody = $('table tbody');
+                    tableBody.empty();
+                    response.forEach(function (data) {
+                        var newRow = `
+                            <tr>
+                                <td>${data.productoID}</td>
+                                <td>${data.descripcion}</td>
+                                <td>${data.precioDeVenta}</td>
+                                <td>${data.stockActual}</td>
+                                <td>${data.categoria}</td>
+                                        <td><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ViewProductModal" onclick="ViewActualizarModal('${data.productoID}')">Actualizar</button>
+                                        <button class="btn btn-danger" onclick="EliminarProducto('${data.productoID}')">Eliminar</button></td>
+                            </tr>`;
+                        tableBody.append(newRow);
+                    });
+                },
+                error: function () {
+                    alert('Hubo un error al crear el estudiante.');
+                }
+            });
+        });
+    }
+    function LimpiarTextos() 
+    {
+        $('#LimpiarProduct').click(function () { 
+            $('#Nombre').val('');
+            $('#Precio').val('');
+            CargarProductos();
+        });
+    }
+</script>
+
