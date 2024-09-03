@@ -1,4 +1,7 @@
-﻿<div class="container">
+﻿<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="container">
     <div class="d-flex flex-row">
         <div class="container-fluid">
             <div class="d-flex col-12">
@@ -42,6 +45,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="ProductLabel">Crear Producto</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <!-- El contenido del modal se carga aquí -->
@@ -49,15 +55,16 @@
         </div>
     </div>
 </div>
-<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).ready(function () {
+       
+
         CargarProductos();
         BuscarPorNombreyPrecio();
         LimpiarTextos();
         ViewCrearModal();
+        
         ViewActualizarModal(productId);
         EliminarProducto(productId);
         
@@ -104,10 +111,17 @@
                 data: { id: buttonValue },
                 success: function (response) {
                     $('.modal-body').html(response);
-                    
+                    $('#Descripcion').val('');
+                    $('#PrecioVenta').val('');
+                    $('#StockMinimo').val('');
+                    $('#StockActual').val('');
+                    $('#FechaDeVenta').val('');
                 },
                 error: function () {
-                    alert('Hubo un error al cargar el formulario.');
+                    Swal.fire({
+                        title: 'Hubo un error al cargar el formulario de Registro.',
+                        icon: "error"
+                    });
                 }
             });
         });
@@ -123,27 +137,60 @@
                 $('.modal-body').html(response);
             },
             error: function () {
-                alert('Hubo un error al cargar el formulario.');
+                Swal.fire({
+                    title: 'Hubo un error al cargar el formulario de Actualización.',
+                    icon: "error"
+                });
             }
         });
     }
 
     function EliminarProducto(productId) {
-        $.ajax({
-            type: "POST",
-            url: "/Productos/ViewEliminar",
-            data: { id: productId }, // Enviar el ID como parte de los datos de la solicitud
-            success: function (response) {
-                Swal.fire({
-                    icon: "error",
-                    title: response.message,
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
+        });
+
+        swalWithBootstrapButtons.fire({
+            title: "Desea Eliminar este Producto",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Si, Eliminar",
+            cancelButtonText: "No, Cancelar",
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Productos/ViewEliminar",
+                    data: { id: productId }, // Enviar el ID como parte de los datos de la solicitud
+                    success: function (response) {
+                        swalWithBootstrapButtons.fire({
+                            title: response.message,
+                            icon: "success"
+                        });
+                        CargarProductos();
+                        $('#ViewProductModal').modal('hide');
+                    },
+                    error: function () {
+                        Swal.fire({
+                            title: 'Hubo un error al Eliminar el Producto.',
+                            icon: "error"
+                        });
+                    }
+                });
+            } else if (
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire({
+                    title: "Cancelado",
+                    icon: "error"
                 });
                 CargarProductos();
                 $('#ViewProductModal').modal('hide');
-               
-            },
-            error: function () {
-                alert('Hubo un error al cargar el formulario.');
             }
         });
     }
@@ -151,7 +198,6 @@
     function BuscarPorNombreyPrecio()
     {
         $('#BuscarProduct').click(function () {
-            //console.log('aki llegue')
             var nombre = $('#Nombre').val();
             var precio = $('#Precio').val();
 
@@ -191,6 +237,5 @@
             CargarProductos();
         });
     }
-
 </script>
 
